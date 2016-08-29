@@ -1,0 +1,58 @@
+
+**** Error file opened at 20160804 212503 China Standard Time Rel. 3.0.14 (2015-12-16) [721.619]
+Error:  >Thu Aug 04 21:25:03,336<    RfcException:
+    message: Connect to SAP gateway failed
+Connection parameters: TYPE=A DEST=quickstartDest ASHOST=54.197.40.147 SYSNR=00 PCS=1
+
+LOCATION    CPIC (TCP/IP) on local host
+ERROR       partner '54.197.40.147:3300' not reached
+TIME        Thu Aug  4 21:25:03 2016
+RELEASE     721
+COMPONENT   NI (network interface)
+VERSION     40
+RC          -10
+MODULE      nibuf.cpp
+LINE        4658
+DETAIL      NiBufIConnect: connection pending after 60000ms
+SYSTEM CALL connect
+ERRNO       36
+ERRNO TEXT  Operation now in progress
+COUNTER     2
+
+    return code: RFC_FAILURE (1)
+    error group: 102
+    key: RFC_ERROR_COMMUNICATION
+Info:  >Thu Aug 04 21:25:03,373<    [JCoAPI] Unexpected java.lang.InterruptedException occurred in JCoTimeoutChecker background thread while being in wait() java.lang.InterruptedException
+	at java.lang.Object.wait(Native Method)
+	at com.sap.conn.jco.rt.AutoJobRunner.run(AutoJobRunner.java:124)
+	at java.lang.Thread.run(Thread.java:744)
+
+
+**** Error file opened at 20160825 223704 China Standard Time Rel. 3.0.14 (2015-12-16) [721.619]
+Error:  >Thu Aug 25 22:37:04,107<    RfcException:
+    message: Connect to SAP gateway failed
+Connection parameters: TYPE=A DEST=quickstartDest ASHOST=54.205.144.253 SYSNR=00 PCS=1
+
+LOCATION    CPIC (TCP/IP) on local host
+ERROR       partner '54.205.144.253:3300' not reached
+TIME        Thu Aug 25 22:37:04 2016
+RELEASE     721
+COMPONENT   NI (network interface)
+VERSION     40
+RC          -10
+MODULE      nibuf.cpp
+LINE        4658
+DETAIL      NiBufIConnect: connection pending after 60000ms
+SYSTEM CALL connect
+ERRNO       36
+ERRNO TEXT  Operation now in progress
+COUNTER     2
+
+    return code: RFC_FAILURE (1)
+    error group: 102
+    key: RFC_ERROR_COMMUNICATION
+Info:  >Thu Aug 25 22:37:04,123<    [JCoAPI] Unexpected java.lang.InterruptedException occurred in JCoTimeoutChecker background thread while being in wait() java.lang.InterruptedException
+	at java.lang.Object.wait(Native Method)
+	at com.sap.conn.jco.rt.AutoJobRunner.run(AutoJobRunner.java:124)
+	at java.lang.Thread.run(Thread.java:744)
+
