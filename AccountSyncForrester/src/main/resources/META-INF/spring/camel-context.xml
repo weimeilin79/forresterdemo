@@ -24,7 +24,7 @@
        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 	
 	
-	<cxf:cxfEndpoint id="customerEndpoint" address="http://0.0.0.0:9292/CamelContext/CustomerService"
+	<cxf:cxfEndpoint id="customerEndpoint" address="http://52.38.191.16:9292/CamelContext/CustomerService"
             wsdlURL="http://52.38.191.16:9292/CamelContext/CustomerService?wsdl"
             serviceClass="com.redhat.sap.CustomerServiceImpl"/>
         
