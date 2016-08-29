@@ -68,6 +68,47 @@
     </get>
   </rest>
   
+  <route id="oppchangelistener">
+    <from uri="salesforce:CamelTestTopic?notifyForOperationUndelete=true&amp;notifyForFields=ALL&amp;sObjectName=Opportunity&amp;updateTopic=true&amp;sObjectQuery=SELECT id,name,AccountId,StageName from Opportunity"/>
+    <marshal>
+      <json prettyPrint="true" library="Jackson"/>
+    </marshal>
+    <log message="Query result back from Salesforce: ${body}"/>
+    <setHeader headerName="accountID">
+      <jsonpath>accountId</jsonpath>
+    </setHeader>
+    <log message="accountId: ${headers.accountID}"/>
+    <setHeader headerName="stageName">
+      <jsonpath>stageName</jsonpath>
+    </setHeader>
+    <choice>
+      <when>
+        <simple>${headers.stageName} == 'CLOSED_WON'</simple>
+        <to uri="direct:getAccount"/>
+      </when>
+    </choice>
+  </route>
+  
+  <route id="getAccount">
+    <from uri="direct:getAccount"/>
+    <setHeader headerName="sObjectId">
+      <simple>${headers.accountID}</simple>
+    </setHeader>
+    <to uri="salesforce:getSObject?sObjectName=Account"/>
+    <log message="Query Account back from Salesforce: ${body}"/>
+    <to ref="CustomerDataTransform"/>
+    <bean ref="flightCustomerCreateReq" method="setCustomerData"/>
+    <unmarshal>
+      <jaxb contextPath="com.redhat.sap.req" prettyPrint="true"/>
+    </unmarshal>
+    <convertBodyTo type="java.lang.String"/>
+	<transform> 
+	  <simple>${body.replaceAll(",", "，")}</simple> 
+	</transform> 
+    <log message="XML to SAP : ${body}"/>
+    <to uri="cxf:bean:customerEndpoint" />
+  </route>
+  
   <route id="synAccountSAP">
     <from uri="direct:synSAP"/>
     <bean ref="mySAPResult" method="clearResult"/>
