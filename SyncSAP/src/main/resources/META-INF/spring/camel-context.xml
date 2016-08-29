@@ -42,7 +42,7 @@
     <!-- *** Please enter the connection property values for your environment *** -->
     <bean id="quickstartDestinationData"
         class="org.fusesource.camel.component.sap.model.rfc.impl.DestinationDataImpl">
-        <property name="ashost" value="54.67.9.1" />
+        <property name="ashost" value="54.183.184.255" />
         <property name="sysnr" value="00" />
         <property name="client" value="001" />
         <property name="user" value="SAP*" />
