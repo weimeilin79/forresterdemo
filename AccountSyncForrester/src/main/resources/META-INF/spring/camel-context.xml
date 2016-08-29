@@ -25,7 +25,7 @@
 	
 	
 	<cxf:cxfEndpoint id="customerEndpoint" address="http://0.0.0.0:9292/CamelContext/CustomerService"
-            wsdlURL="http://54.244.63.254:9292/CamelContext/CustomerService?wsdl"
+            wsdlURL="http://52.38.191.16:9292/CamelContext/CustomerService?wsdl"
             serviceClass="com.redhat.sap.CustomerServiceImpl"/>
         
 	<bean
