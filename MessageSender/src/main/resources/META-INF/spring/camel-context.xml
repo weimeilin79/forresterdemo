@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+     Copyright 2005-2014 Red Hat, Inc.
+
+     Red Hat licenses this file to you under the Apache License, version
+     2.0 (the "License"); you may not use this file except in compliance
+     with the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+     implied.  See the License for the specific language governing
+     permissions and limitations under the License.
+
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+	
+	<bean id="customerGenerator" class="com.mycompany.camel.producer.CustomerGenerator"/>
+	<bean id="myProcessor" class="com.mycompany.camel.producer.MyProcessor"/>
+	
+	<bean id="jmsConnectionFactory" class="org.apache.qpid.jms.JmsConnectionFactory">
+	  <property name="remoteURI" value="amqp://broker-amq-amqp:5672" />
+	  <property name="username" value="admin"/>
+	  <property name="password" value="admin"/>
+	</bean>
+	 
+	<bean id="jmsCachingConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+	  <property name="targetConnectionFactory" ref="jmsConnectionFactory" />
+	</bean>
+	 
+	<bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration" >
+	  <property name="connectionFactory" ref="jmsCachingConnectionFactory" /> 
+	  <property name="cacheLevelName" value="CACHE_CONSUMER" />
+	</bean>    
+	 
+	<bean id="amqp" class="org.apache.camel.component.amqp.AMQPComponent">
+	    <property name="configuration" ref="jmsConfig" />
+	</bean>
+	
+
+  	<camelContext xmlns="http://camel.apache.org/schema/spring">
+	 
+      
+	  <route id="Sender">
+        <from uri="timer://foo?repeatCount=100&amp;period=3000"/>
+        <multicast>
+            <to uri="seda:mqtt"/>
+            <to uri="seda:amqp"/>
+            <!--<to uri="seda:kafka"/>-->
+        </multicast>
+    </route>
+	
+	<!-- MQTT Sender --> 
+  	<route id="mqttsender">
+  	  <from uri="seda:mqtt"/>
+  	  <bean ref="customerGenerator" method="randomCustomer" />
+  	  <log message="sendingMQTT---> ${body}" />
+  	  <convertBodyTo type="java.lang.String" />
+  	  <to uri="mqtt:mqttforrester?publishTopicName=test.mqtt.topic&amp;host=tcp://broker-amq-mqtt:1883&amp;userName=admin&amp;password=admin"/>
+  	</route>
+  	
+  	<!-- AMQP Sender --> 
+  	<route id="amqpsender">
+  	  <from uri="seda:amqp"/>
+  	  <bean ref="customerGenerator" method="randomCustomer" />
+  	  <log message="sendingAMQP---> ${body}" />
+  	  <to uri="amqp:queue:forresterQ"/>
+  	</route>
+  	
+  	<!-- Kafka Sender --> 
+  	<route id="kafkasender">
+  	  <from uri="seda:kafka"/>
+  	  <bean ref="customerGenerator" method="randomCustomer" />
+  	  <bean ref="myProcessor"/>
+  	  <log message="sendingKAFKA---> ${body}" />
+  	  <to uri="kafka:ec2-52-25-16-188.us-west-2.compute.amazonaws.com:2181?groupId=foo-group&amp;autoOffsetReset=earliest&amp;topic=forresterKafka&amp;exchangePattern=InOnly"/>
+  	</route>
+  	
+	</camelContext>
+
+</beans>

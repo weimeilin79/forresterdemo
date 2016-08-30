@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+     Copyright 2005-2014 Red Hat, Inc.
+
+     Red Hat licenses this file to you under the Apache License, version
+     2.0 (the "License"); you may not use this file except in compliance
+     with the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+     implied.  See the License for the specific language governing
+     permissions and limitations under the License.
+
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+	
+	
+	<!-- this is the JDBC data source Config for DV  -->
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+	  <property name="driverClassName" value="org.teiid.jdbc.TeiidDriver"/>
+	  <property name="url" value="jdbc:teiid:customer_vdb@mm://52.38.217.15:31000"/>
+	  <property name="username" value="teiidUser"/>
+	  <property name="password" value="Redhat1!"/>
+	</bean>
+	 
+	<!-- configure the Camel SQL component to use the JDBC data source -->
+	<bean id="sql" class="org.apache.camel.component.sql.SqlComponent">
+	  <property name="dataSource" ref="dataSource"/>
+	</bean>
+	
+	<bean id="jmsConnectionFactory" class="org.apache.qpid.jms.JmsConnectionFactory">
+	  <property name="remoteURI" value="amqp://broker-amq-amqp:5672" />
+	  <property name="username" value="admin"/>
+	  <property name="password" value="admin"/>
+	</bean>
+	 
+	<bean id="jmsCachingConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+	  <property name="targetConnectionFactory" ref="jmsConnectionFactory" />
+	</bean>
+	 
+	<bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration" >
+	  <property name="connectionFactory" ref="jmsCachingConnectionFactory" /> 
+	  <property name="cacheLevelName" value="CACHE_CONSUMER" />
+	</bean>    
+	 
+	<bean id="amqp" class="org.apache.camel.component.amqp.AMQPComponent">
+	    <property name="configuration" ref="jmsConfig" />
+	</bean>
+		
+	<bean id="mqttParser" class="com.mycompany.camel.producer.MQTTParser" />
+	
+  	<camelContext xmlns="http://camel.apache.org/schema/spring">
+	
+	 <!-- use Camel property placeholder loaded from the given file -->
+     <propertyPlaceholder id="placeholder" location="classpath:sql.properties"/>
+      
+  	<route id="mqttlistener">
+		<from uri="mqtt:mqttforrester?subscribeTopicName=test.mqtt.topic&amp;host=tcp://broker-amq-mqtt:1883&amp;userName=admin&amp;password=admin" />
+  		<bean ref="mqttParser" />
+  		<log message="from mqtt --> ${body}" />
+  		<to uri="sql:{{sql.insertCustomer}}"/>
+  	</route>
+  	<route id="amqplistener">
+  		<from uri="amqp:queue:forresterQ" />
+  		<log message="from amqp --> ${body}" />
+  		<to uri="sql:{{sql.insertCustomer}}"/>
+  	</route>
+  	<route id="kafkalistener">
+  		<from uri="kafka:ec2-52-25-16-188.us-west-2.compute.amazonaws.com:2181?groupId=foo-group&amp;autoOffsetReset=earliest&amp;topic=forresterKafka" />
+  		<log message="from kafka -->${body}" />
+  		<to uri="sql:{{sql.insertCustomer}}"/>
+  	</route>
+	</camelContext>
+
+</beans>
