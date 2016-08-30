@@ -36,7 +36,7 @@
 	</bean>
 	
 	<bean id="jmsConnectionFactory" class="org.apache.qpid.jms.JmsConnectionFactory">
-	  <property name="remoteURI" value="tcp://broker-amq-amqp:5672" />
+	  <property name="remoteURI" value="amqp://broker-amq-amqp:5672" />
 	  <property name="username" value="admin"/>
 	  <property name="password" value="admin"/>
 	</bean>
@@ -64,19 +64,20 @@
   	<route id="mqttlistener">
 		<from uri="mqtt:mqttforrester?subscribeTopicName=test.mqtt.topic&amp;host=tcp://broker-amq-mqtt:1883&amp;userName=admin&amp;password=admin" />
   		<bean ref="mqttParser" />
-  		<log message="from mqtt --> ${body}" />
+  		<log message="from mqtt : ${body}" />
   		<to uri="sql:{{sql.insertCustomer}}"/>
   	</route>
   	<route id="amqplistener">
   		<from uri="amqp:queue:forresterQ" />
-  		<log message="from amqp --> ${body}" />
+  		<log message="from amqp : ${body}" />
   		<to uri="sql:{{sql.insertCustomer}}"/>
   	</route>
-  	<route id="kafkalistener">
-  		<from uri="kafka:ec2-52-25-16-188.us-west-2.compute.amazonaws.com:2181?groupId=foo-group&amp;autoOffsetReset=earliest&amp;topic=forresterKafka" />
-  		<log message="from kafka -->${body}" />
+  	<!-- <route id="kafkalistener">
+  		<from uri="kafka:localhost:9092?groupId=foo-group&amp;autoOffsetReset=earliest&amp;topic=test" />
+  		<bean ref="mqttParser" />
+  		<log message="from kafka : ${body}" />
   		<to uri="sql:{{sql.insertCustomer}}"/>
-  	</route>
+  	</route> -->
 	</camelContext>
 
 </beans>
