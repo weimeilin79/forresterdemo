@@ -36,7 +36,7 @@
 	</bean>
 	
 	<bean id="jmsConnectionFactory" class="org.apache.qpid.jms.JmsConnectionFactory">
-	  <property name="remoteURI" value="amqp://${env:BROKER_AMQ_AMQP_SERVICE_HOST}:5672" />
+	  <property name="remoteURI" value="tcp://172.30.39.188:5672" />
 	  <property name="username" value="admin"/>
 	  <property name="password" value="admin"/>
 	</bean>
@@ -62,7 +62,7 @@
      <propertyPlaceholder id="placeholder" location="classpath:sql.properties"/>
       
   	<route id="mqttlistener">
-		<from uri="mqtt:mqttforrester?subscribeTopicName=test.mqtt.topic&amp;host=tcp://${env:BROKER_AMQ_MQTT_SERVICE_HOST}:1883&amp;userName=admin&amp;password=admin" />
+		<from uri="mqtt:mqttforrester?subscribeTopicName=test.mqtt.topic&amp;host=tcp://172.30.180.203:1883&amp;userName=admin&amp;password=admin" />
   		<bean ref="mqttParser" />
   		<log message="from mqtt --> ${body}" />
   		<to uri="sql:{{sql.insertCustomer}}"/>
