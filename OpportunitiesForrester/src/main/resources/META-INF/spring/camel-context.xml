@@ -21,6 +21,19 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 	
+	<!-- this is the JDBC data source Config for DV  -->
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+	  <property name="driverClassName" value="org.teiid.jdbc.TeiidDriver"/>
+	  <property name="url" value="jdbc:teiid:customer_vdb@mm://52.38.217.15:31000"/>
+	  <property name="username" value="teiidUser"/>
+	  <property name="password" value="Redhat1!"/>
+	</bean>
+	 
+	<!-- configure the Camel SQL component to use the JDBC data source -->
+	<bean id="sql" class="org.apache.camel.component.sql.SqlComponent">
+	  <property name="dataSource" ref="dataSource"/>
+	</bean>
+	
 	
 	 <bean id="odata" class="org.apache.camel.component.olingo2.Olingo2Component">
 	    <property name="configuration">
@@ -38,55 +51,12 @@
 	  </bean>
 	  <bean id="opportunityService" class="com.redhat.salesforce.OpportunityService" />
 	
- 	<camelContext xmlns="http://camel.apache.org/schema/spring">
-  <restConfiguration component="jetty" port="9191" bindingMode="json"/>
-  <rest path="/opportunity">
-    <get uri="/syncBigData">
-      <to uri="direct:AllList"/>
-    </get>
-  </rest>
-  <route id="getAllList">
-    <from uri="direct:AllList"/>
-    <to uri="odata://read/sf_opps.Opportunity?$format=json"/>
-    <split streaming="true">
-      	<simple>${body.getEntries()}</simple>
-      	<to uri="direct:processIndiviualOpp"/>
-    </split>
-  </route>
-  <route id="processIndiviualOpp">
-    <from uri="direct:processIndiviualOpp"/>
-    <bean ref="opportunityService" method="clear" />
-    <bean ref="opportunityService" method="put('Id',${body.getProperties[Id]})" />
-    <bean ref="opportunityService" method="put('Name',${body.getProperties[Name]})" />
-    <bean ref="opportunityService" method="put('url','/services/data/v33.0/sobjects/Opportunity/${body.getProperties[Id]})'" />
-    <bean ref="opportunityService" method="put('Amount',${body.getProperties[Amount]})" />
-    <bean ref="opportunityService" method="put('AccountId',${body.getProperties[AccountId]})" />
-    <bean ref="opportunityService" method="put('StageName',${body.getProperties[StageName]})" />
-    <bean ref="opportunityService" method="put('IsClosed',${body.getProperties[IsClosed]})" />
-    <bean ref="opportunityService" method="put('Probability',${body.getProperties[Probability]})" />
-    <bean ref="opportunityService" method="put('IsWon',${body.getProperties[IsWon]})" />
-    <bean ref="opportunityService" method="put('Fiscal',${body.getProperties[Fiscal]})" />
-    <bean ref="opportunityService" method="getOpp" />
-    <log message="${body}" />
-    <!--<to uri="odata://create/customer_view.opportunity?$format=json" />-->
-  </route>
-  
-  
-  	<route id="updateStatus">
-  		<from uri="direct:updateStatus"/>
-  		<setHeader headerName="sObjectId">
-	    	<simple>${headers.id}</simple>        
-	  	</setHeader>
-	  	<!--  <to uri="salesforce:getSObject?sObjectName=Opportunity" />
+ 	<!--<to uri="odata://create/customer_view.opportunity?$format=json" />--><!--  <to uri="salesforce:getSObject?sObjectName=Opportunity" />
 	  	<log message="stagestatus to update ${headers.stagestatus}"/>
 	  	<bean ref="myOpportunityService" method="updateStatus(${body},${headers.stagestatus})" />
 	  	<to uri="salesforce:updateSObject?sObjectName=Opportunity" />
 	  	<log message="return from salesforce ${body}"/>
-	  	-->
-  	</route>
-  	
-  	
-  	<!-- <route id="odata-route">
+	  	--><!-- <route id="odata-route">
       <from uri="timer://foo?fixedRate=true&amp;period=60000"/>
       <log message="Retrieving data from JBoss Data Virtualization" />
       <to uri="odata://read/customer_view.opportunity?$format=json" />
@@ -96,6 +66,48 @@
       </split>
     </route>-->
     
+  <camelContext xmlns="http://camel.apache.org/schema/spring">
+  	<!-- use Camel property placeholder loaded from the given file -->
+  	<propertyPlaceholder id="placeholder" location="classpath:sql.properties"/>
+      
+	  <restConfiguration component="jetty" port="9191" bindingMode="json"/>
+	  <rest path="/opportunity">
+	    <get uri="/syncBigData">
+	      <to uri="direct:AllList"/>
+	    </get>
+	  </rest>
+  <route id="getAllList">
+    <from uri="direct:AllList"/>
+    <to uri="odata://read/opportunities_view.cannonical_opportunities?$format=json"/>
+    <split streaming="true">
+      <simple>${body.getEntries()}</simple>
+      <to uri="direct:processIndiviualOpp"/>
+    </split>
+  </route>
+  <route id="processIndiviualOpp">
+    <from uri="direct:processIndiviualOpp"/>
+    <bean ref="opportunityService" method="clear"/>
+    <bean ref="opportunityService" method="put('Id',${body.getProperties[Id]})"/>
+    <bean ref="opportunityService" method="put('Name',${body.getProperties[Name]})"/>
+    <bean ref="opportunityService" method="put('url','/services/data/v33.0/sobjects/Opportunity/${body.getProperties[Id]})'"/>
+    <bean ref="opportunityService" method="put('Amount',${body.getProperties[Amount]})"/>
+    <bean ref="opportunityService" method="put('AccountId',${body.getProperties[AccountId]})"/>
+    <bean ref="opportunityService" method="put('StageName',${body.getProperties[StageName]})"/>
+    <bean ref="opportunityService" method="put('IsClosed',${body.getProperties[IsClosed]})"/>
+    <bean ref="opportunityService" method="put('Probability',${body.getProperties[Probability]})"/>
+    <bean ref="opportunityService" method="put('IsWon',${body.getProperties[IsWon]})"/>
+    <bean ref="opportunityService" method="put('Fiscal',${body.getProperties[Fiscal]})"/>
+    <bean ref="opportunityService" method="getOpp"/>
+    <log message="${body}"/>
+    <to uri="sql:{{sql.insertOppos}}"/>
+   
+  </route>
+  <route id="updateStatus">
+    <from uri="direct:updateStatus"/>
+    <setHeader headerName="sObjectId">
+      <simple>${headers.id}</simple>
+    </setHeader>
+  </route>
 </camelContext>
 <!-- <split>
 		<simple>records</simple>
