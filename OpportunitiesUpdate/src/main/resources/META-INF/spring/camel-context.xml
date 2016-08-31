@@ -66,7 +66,12 @@
   	<camelContext xmlns="http://camel.apache.org/schema/spring">
   	  <propertyPlaceholder id="placeholder" location="classpath:sql.properties"/>
   	
-	  <restConfiguration component="jetty" port="9191" bindingMode="json"/>
+	  <restConfiguration component="jetty" port="9191" bindingMode="json" apiContextPath="api-doc" >
+	    <apiProperty key="cors" value="true" />
+	  	<apiProperty key="api.title" value="Forrester Wave Demo" />
+	  	<apiProperty key="api.version" value="1.0.0" />
+	    <corsHeaders key="Access-Control-Allow-Origin" value="*"/>
+	  </restConfiguration>
 	  <rest path="/opportunity">	   
 	    <get uri="/updateOpp/{id}/{stagestatus}">
 	      <to uri="direct:updateStatus"/>
