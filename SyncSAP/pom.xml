@@ -4,18 +4,67 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.redhat</groupId>
-  <artifactId>sap</artifactId>
+  <artifactId>messagesender</artifactId>
   <packaging>jar</packaging>
   <version>1.0.0-SNAPSHOT</version>
 
-  <name>A Camel Spring Route</name>
+  <name>Message sender</name>
   <url>http://www.myorganization.org</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-  </properties>
 
+    <!-- maven plugin versions -->
+    <fabric8.maven.plugin.version>3.0.15</fabric8.maven.plugin.version>
+
+    <!-- configure the versions you want to use here -->
+    <camel.version>2.17.1</camel.version>
+    <fabric8.version>2.2.0.redhat-079</fabric8.version>
+
+    <docker.maven.plugin.version>0.15.7</docker.maven.plugin.version>
+
+    <archaius.version>0.6.6</archaius.version>
+    <kubeflix.version>1.0.13</kubeflix.version>
+    <kubernetes-client.version>1.3.72</kubernetes-client.version>
+    <hystrix.version>1.4.9</hystrix.version>
+    <ribbon.version>2.1.2</ribbon.version>
+    <rxjava.version>1.0.10</rxjava.version>
+    <rxnetty.version>0.4.9</rxnetty.version>
+    <turbine.version>1.0.0</turbine.version>
+
+    <spring-cloud-netflix.version>1.0.6.RELEASE</spring-cloud-netflix.version>
+    <spring-cloud.version>1.0.5.RELEASE</spring-cloud.version>
+
+    <docker.from>fabric8/java-jboss-openjdk8-jdk:1.0.13</docker.from>
+    <fabric8.dockerUser>fabric8/</fabric8.dockerUser>
+    <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
+    <docker.port.container.http>8080</docker.port.container.http>
+
+    <fabric8.service.name>messagesender</fabric8.service.name>
+    <fabric8.label.group>forrester</fabric8.label.group>
+    <fabric8.iconRef>camel</fabric8.iconRef>
+    
+  </properties>
+  <dependencyManagement>
+    <dependencies>
+      <!-- import fabric8 platform bom first -->
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>fabric8-project-bom-with-platform-deps</artifactId>
+        <version>${fabric8.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.apache.camel</groupId>
+        <artifactId>camel-parent</artifactId>
+        <version>${camel.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <repositories>
     <repository>
       <id>release.fusesource.org</id>
@@ -70,72 +119,76 @@
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-core</artifactId>
-      <version>2.15.1.redhat-621084</version>
     </dependency>
     <dependency>
       <groupId>org.apache.camel</groupId>
-      <artifactId>camel-spring</artifactId>
-      <version>2.15.1.redhat-621084</version>
+      <artifactId>camel-kafka</artifactId>
     </dependency>
-    <!-- For Web Service with CXF -->
-	 <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-cxf</artifactId>
-      <version>2.15.1.redhat-621084</version>
-    </dependency>
-		
-	<dependency>
-	    <groupId>org.apache.cxf</groupId>
-	    <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-	    <version>3.0.4.redhat-621084</version>
-	</dependency>
-	
-	<dependency>
-	    <groupId>org.apache.cxf</groupId>
-	    <artifactId>cxf-rt-transports-http-jetty</artifactId>
-	    <version>3.0.4.redhat-621084</version>
-	</dependency>
-	
-	
-	
-    <dependency>              	
-		<groupId>com.sap.conn.jco</groupId>              
-		<artifactId>sapjco3</artifactId>              
-		<version>3.0.11</version>              
-		<scope>system</scope>              
-		<systemPath>/Users/christina/workspace/62SalesforceSAP/SAP/lib/sapjco3.jar</systemPath>        
-	</dependency>
     <dependency>
-      <groupId>org.fusesource</groupId>
-      <artifactId>camel-sap</artifactId>
-      <version>6.3.0.redhat-045</version>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-jackson</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-mqtt</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-amqp</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-olingo2</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>io.fabric8.mq</groupId>
+      <artifactId>camel-amq</artifactId>
+    </dependency>
+   	
+   	<dependency>
+      <groupId>io.fabric8.mq</groupId>
+      <artifactId>mq-client</artifactId>
+    </dependency>
+    
+    <dependency>
+	    <groupId>org.apache.olingo</groupId>
+	    <artifactId>olingo-odata2-api</artifactId>
+	    <version>2.0.7</version>
+	</dependency>
+    
+	<dependency>
+	    <groupId>org.apache.olingo</groupId>
+	    <artifactId>olingo-odata2-core</artifactId>
+	    <version>2.0.7</version>
+	</dependency>
+     
     <!-- logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.10</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.10</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>1.2.17</version>
     </dependency>
 
     <!-- testing -->
     <dependency>
       <groupId>org.apache.camel</groupId>
-      <artifactId>camel-test-spring</artifactId>
-      <version>2.15.1.redhat-621084</version>
+      <artifactId>camel-test</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>   
+    
   </dependencies>
 
   <build>
@@ -160,12 +213,17 @@
         </configuration>
       </plugin>
 
-      <!-- allows the route to be ran via 'mvn camel:run' -->
+      <!-- Allows the example to be run via 'mvn compile exec:java' -->
       <plugin>
-        <groupId>org.apache.camel</groupId>
-        <artifactId>camel-maven-plugin</artifactId>
-        <version>2.15.1.redhat-621084</version>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <configuration>
+            <mainClass>com.mycompany.camel.java.MainApp</mainClass>
+            <includePluginDependencies>false</includePluginDependencies>
+        </configuration>
       </plugin>
+
     </plugins>
   </build>
 
