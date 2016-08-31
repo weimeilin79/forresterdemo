@@ -47,20 +47,20 @@
   	<camelContext xmlns="http://camel.apache.org/schema/spring">
 	 
       
-	  <route id="Sender">
-        <from uri="timer://foo?repeatCount=100&amp;period=3000"/>
-        <multicast>
+	<route id="Sender">
+         <from uri="timer://foo?repeatCount=100&amp;period=3000"/>
+         <multicast>
             <to uri="seda:mqtt"/>
-            <to uri="seda:amqp"/>
-            <!--<to uri="seda:kafka"/>-->
-        </multicast>
-    </route>
+            <to uri="seda:amqp"/> 
+            <to uri="seda:kafka"/>
+         </multicast>
+        </route>
 	
 	<!-- MQTT Sender --> 
   	<route id="mqttsender">
   	  <from uri="seda:mqtt"/>
   	  <bean ref="customerGenerator" method="randomCustomer" />
-  	  <log message="sendingMQTT---> ${body}" />
+  	  <log message="sendingMQTT ${body}" />
   	  <convertBodyTo type="java.lang.String" />
   	  <to uri="mqtt:mqttforrester?publishTopicName=test.mqtt.topic&amp;host=tcp://broker-amq-mqtt:1883&amp;userName=admin&amp;password=admin"/>
   	</route>
@@ -69,18 +69,19 @@
   	<route id="amqpsender">
   	  <from uri="seda:amqp"/>
   	  <bean ref="customerGenerator" method="randomCustomer" />
-  	  <log message="sendingAMQP---> ${body}" />
+  	  <log message="sendingAMQP ${body}" />
   	  <to uri="amqp:queue:forresterQ"/>
-  	</route>
+  	</route> 
   	
   	<!-- Kafka Sender --> 
   	<route id="kafkasender">
   	  <from uri="seda:kafka"/>
   	  <bean ref="customerGenerator" method="randomCustomer" />
   	  <bean ref="myProcessor"/>
-  	  <log message="sendingKAFKA---> ${body}" />
-  	  <to uri="kafka:ec2-52-25-16-188.us-west-2.compute.amazonaws.com:2181?groupId=foo-group&amp;autoOffsetReset=earliest&amp;topic=forresterKafka&amp;exchangePattern=InOnly"/>
-  	</route>
+  	  <log message="sendingKAFKA ${body}" />
+  	  <convertBodyTo type="java.lang.String" />
+          <to uri="kafka:52.25.16.188:9092?groupId=foo-group&amp;autoOffsetReset=earliest&amp;topic=test&amp;exchangePattern=InOnly"/>
+  	</route> 
   	
 	</camelContext>
 

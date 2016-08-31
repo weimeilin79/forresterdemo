@@ -71,13 +71,13 @@
   		<from uri="amqp:queue:forresterQ" />
   		<log message="from amqp : ${body}" />
   		<to uri="sql:{{sql.insertCustomer}}"/>
-  	</route>
-  	<!-- <route id="kafkalistener">
-  		<from uri="kafka:localhost:9092?groupId=foo-group&amp;autoOffsetReset=earliest&amp;topic=test" />
+  	</route> 
+  	<route id="kafkalistener">
+  		<from uri="kafka:52.25.16.188:9092?groupId=foo-group&amp;autoOffsetReset=earliest&amp;topic=test" />
   		<bean ref="mqttParser" />
   		<log message="from kafka : ${body}" />
   		<to uri="sql:{{sql.insertCustomer}}"/>
-  	</route> -->
+  	</route>
 	</camelContext>
 
 </beans>
