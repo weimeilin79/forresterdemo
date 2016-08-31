@@ -3,9 +3,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.redhat</groupId>
-  <artifactId>salesforce</artifactId>
+  <artifactId>salesforceaccsync</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <name>A Camel Spring Route</name>
+  <name>Sync Account Information from SalesForce to SAP</name>
   <url>http://www.myorganization.org</url>
   <properties>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -17,7 +17,7 @@
     <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
     <docker.port.container.jolokia>8778</docker.port.container.jolokia>
 	
-	<fabric8.service.name>salesforces</fabric8.service.name>
+	<fabric8.service.name>salesforceaccsync</fabric8.service.name>
     <fabric8.service.port>80</fabric8.service.port>
     <fabric8.service.containerPort>${http.port}</fabric8.service.containerPort>
     
@@ -26,8 +26,9 @@
 	
     <fabric8.label.component>${project.artifactId}</fabric8.label.component>
     <fabric8.label.container>java</fabric8.label.container>
-    <fabric8.label.group>quickstarts</fabric8.label.group>
+    <fabric8.label.group>forrester</fabric8.label.group>
     <fabric8.iconRef>camel</fabric8.iconRef>
+
     
     <fabric8.version>2.2.0.redhat-079</fabric8.version>
     <docker.maven.plugin.version>0.13.6</docker.maven.plugin.version>

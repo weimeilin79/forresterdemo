@@ -61,12 +61,6 @@
 	
  <camelContext xmlns="http://camel.apache.org/schema/spring" xmlns:BAPI_FLCUST_CREATEFROMDATA="http://sap.fusesource.org/rfc/A4H/BAPI_FLCUST_CREATEFROMDATA">
   <endpoint uri="dozer:CustomerDataTransform?sourceModel=org.apache.camel.salesforce.dto.Account&amp;targetModel=com.redhat.sap.req.CustomerData&amp;mappingFile=transformation.xml" id="CustomerDataTransform"/>
-  <restConfiguration component="jetty" port="9191" bindingMode="json"/>
-  <rest path="/account">
-    <get uri="/synSAP">
-      <to uri="direct:synSAP"/>
-    </get>
-  </rest>
   
   <route id="oppchangelistener">
     <from uri="salesforce:CamelTestTopic?notifyForOperationUndelete=true&amp;notifyForFields=ALL&amp;sObjectName=Opportunity&amp;updateTopic=true&amp;sObjectQuery=SELECT id,name,AccountId,StageName from Opportunity"/>
@@ -108,45 +102,6 @@
     <log message="XML to SAP : ${body}"/>
     <to uri="cxf:bean:customerEndpoint" />
   </route>
-  
-  <route id="synAccountSAP">
-    <from uri="direct:synSAP"/>
-    <bean ref="mySAPResult" method="clearResult"/>
-    <to uri="salesforce:query?sObjectQuery=SELECT Id,Name,AccountNumber,BillingCity,Phone,BillingPostalCode,BillingStreet from Account&amp;sObjectClass=org.apache.camel.salesforce.dto.QueryRecordsAccount"/>
-    <split>
-		<simple>${body.records}</simple>
-		<log message="${body}"/>
-		<to uri="direct:doSAPCustSync"/>
-	</split>
-    <bean ref="mySAPResult" method="getResult" />
-  </route>
-  
-  <route id="SAPCustSync">
-    <from uri="direct:doSAPCustSync"/>
-    <!--  <log message="Query Account back from Salesforce: ${body}"/> -->
-    <to ref="CustomerDataTransform"/>
-    <bean ref="flightCustomerCreateReq" method="setCustomerData"/>
-    <unmarshal>
-      <jaxb contextPath="com.redhat.sap.req" prettyPrint="true"/>
-    </unmarshal>
-    <convertBodyTo type="java.lang.String"/>
-	<transform> 
-	  <simple>${body.replaceAll(",", "，")}</simple> 
-	</transform> 
-    <log message="XML to SAP : ${body}"/>
-    <to uri="cxf:bean:customerEndpoint" />
-    <to uri="seda:aggregate" />
-  </route>
-  
-  <route id="aggregateOpps">
-  	<from uri="seda:aggregate"/>
-  	<setBody>
-  		<xpath>//@MESSAGE</xpath>
-  	</setBody>
-  	<log message="XML from SAP : ${body}"/>
-	<bean ref="mySAPResult" method="add(${body})" />
-  </route>
-  
 </camelContext>
 
 </beans>
